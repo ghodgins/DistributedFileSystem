@@ -74,7 +74,15 @@ class DFSClient():
         else:
         	return filename + " does not exist!"
 
+    # 1. check master server for location on data nodes
+    # 2. check if file is locked (whether by someone else or this client)
+    # 3. if not locked, write file, otherwise only write if current client owns lock (tbi)
     def write(self, filename, data):
+        lockcheck = json.loads(client.checkLock(filename))
+
+        if lockcheck['response'] == "locked":
+            return "Cannot write as file is locked by another client!"
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.masterAddr, self.masterPort))
 

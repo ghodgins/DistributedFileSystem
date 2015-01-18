@@ -22,8 +22,8 @@ def getLockMapping(filename):
     else:
         return None
 
-def addLockMapping(filename, timestamp, timeout):
-    LOCK_MAPPINGS[filename] = {"timestamp": timestamp, "timeout": timeout}
+def addLockMapping(filename, clientid, timestamp, timeout):
+    LOCK_MAPPINGS[filename] = {"clientid": clientid, "timestamp": timestamp, "timeout": timeout}
 
 def deleteLockMapping(filename):
     del LOCK_MAPPINGS[filename]
@@ -57,6 +57,14 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                     response = json.dumps({
                         "response": "unlocked"
                     })
+                elif msg['clientid'] == fs['clientid']:
+                    print "Check lock -> lockowned"
+                    response = json.dumps({
+                        "response": "lockowned",
+                        "filename": msg['filename'],
+                        "timestamp": fs['timestamp'],
+                        "timeout": fs['timeout']
+                    })
                 else:
                     print "Check lock -> locked"
                     response = json.dumps({
@@ -85,13 +93,22 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                     print timestamp
 
                     deleteLockMapping(msg['filename'])
-                    addLockMapping(msg['filename'], timestamp, LOCK_TIMEOUT)
+                    addLockMapping(msg['filename'], msg['clientid'], timestamp, LOCK_TIMEOUT)
 
                     response = json.dumps({
                         "response": "lockgranted",
                         "filename": msg['filename'],
                         "timestamp": fs['timestamp'],
                         "timeout": fs['timeout']
+                    })
+                elif msg['clientid'] == fs['clientid']:
+                    print "Check lock -> lockowned"
+                    timestamp = time.time()
+                    response = json.dumps({
+                        "response": "lockregranted",
+                        "filename": msg['filename'],
+                        "timestamp": timestamp,
+                        "timeout": LOCK_TIMEOUT
                     })
                 else:
                     print "Obtain lock -> locked already"
@@ -105,11 +122,12 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
             else:
                 print "Obtain lock -> lock granted"
                 timestamp = time.time()
-                addLockMapping(msg['filename'], timestamp, LOCK_TIMEOUT)
+                addLockMapping(msg['filename'], msg['clientid'], timestamp, LOCK_TIMEOUT)
 
                 response = json.dumps({
                     "response": "lockgranted",
                     "filename": msg['filename'],
+                    "clientid": msg['clientid'],
                     "timestamp": timestamp,
                     "timeout": LOCK_TIMEOUT
                 })
