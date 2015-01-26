@@ -12,6 +12,9 @@ Acts like a namenode, keeps track of where every file is in the distribute file 
 ##Locking Server
 Keeps track of which files are locked in the distributed file system, and which client owns the lock.
 
+##Caching
+Simple caching on the client side that will read the file from the cache if present and valid. Will check if valid with the master server before, and invalidate if not.
+
 ##Usage
 "run.sh" creates:
 - 1 directory server
@@ -20,4 +23,4 @@ Keeps track of which files are locked in the distributed file system, and which 
 - 2 clients
 
 ## TODO
-- Caching
+Clean up code, which is messy due to time constraints.

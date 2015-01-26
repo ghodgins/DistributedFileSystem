@@ -3,6 +3,7 @@ import sys
 import json
 import argparse
 import uuid
+import time
 
 MASTER_ADDRESS = "127.0.0.1"
 MASTER_PORT = 8080
@@ -16,6 +17,7 @@ class DFSClient():
         self.masterPort = masterPort
         self.lockAddr = lockHost
         self.lockPort = lockPort
+        self.cache = {}
 
     def open(self, filename):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,17 +62,25 @@ class DFSClient():
         fileServerInfo = json.loads(self.open(filename))
 
         if fileServerInfo['isFile']:
-	        addr = fileServerInfo['address']
-	        port = int(fileServerInfo['port'])
+            if (filename in self.cache) and (self.cache[filename]['timestamp'] >= fileServerInfo['timestamp']):
+                cacheFileInfo = self.cache[filename]
+                print "Read '" + filename + "' from cache!"
+                return cacheFileInfo
+            else:
+                addr = fileServerInfo['address']
+                port = int(fileServerInfo['port'])
 
-	        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	        sock.connect((addr, port))
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.connect((addr, port))
 
-	        msg = json.dumps({"request": "read", "filename": filename, "clientid": self.id})
-	        sock.sendall(msg)
+                msg = json.dumps({"request": "read", "filename": filename, "clientid": self.id})
+                sock.sendall(msg)
 
-	        response = sock.recv(1024)
-	        return response
+                response = sock.recv(1024)
+
+                self.cache['filename'] = json.loads(response)
+
+                return response
         else:
         	return filename + " does not exist!"
 
@@ -86,7 +96,9 @@ class DFSClient():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.masterAddr, self.masterPort))
 
-        msg = json.dumps({"request": "write", "filename": filename, "clientid": self.id})
+        timestamp = time.time() 
+
+        msg = json.dumps({"request": "write", "filename": filename, "clientid": self.id, "timestamp": timestamp})
         sock.sendall(msg)
         response = sock.recv(1024)
 
@@ -98,7 +110,11 @@ class DFSClient():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((addr, port))
 
-        msg = json.dumps({"request": "write", "filename": filename, "data": data, "clientid": self.id})
+        content = {"request": "write", "filename": filename, "data": data, "clientid": self.id, "timestamp": timestamp}
+
+        self.cache[filename] = content
+
+        msg = json.dumps(content)
         sock.sendall(msg)
 
         response = sock.recv(1024)
@@ -106,14 +122,6 @@ class DFSClient():
 
 
 if __name__ == '__main__':
-    #parser = argparse.ArgumentParser(description='Client for testing Distribute File System.')
-    #parser.add_argument('masterAddr', metavar='address', type=str, help='Address of master server')
-    #parser.add_argument('masterPort', metavar='port', type=int, help='Port of master server')
-
-    #args = parser.parse_args()
-
-    #client = DFSClient(args.masterAddr, args.masterPort)
-
     client = DFSClient(MASTER_ADDRESS, MASTER_PORT, LOCK_ADDRESS, LOCK_PORT)
 
     requestType = ""

@@ -4,6 +4,7 @@ import os
 import sys
 import uuid
 import random
+import time
 
 ADDRESS = "127.0.0.1"
 PORT = 8080
@@ -20,8 +21,8 @@ def getFileMapping(filename):
     else:
         return None
 
-def addFileMapping(filename, nodeID, address, port):
-    FILE_MAPPINGS['filename'] = {"nodeID": nodeID, "address": address, "port": port}
+def addFileMapping(filename, nodeID, address, port, timestamp):
+    FILE_MAPPINGS['filename'] = {"nodeID": nodeID, "address": address, "port": port, "timestamp": timestamp}
 
 def deleteFileMapping(filename):
     del FILE_MAPPINGS[filename]
@@ -48,7 +49,8 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                     "filename": msg['filename'],
                     "isFile": True,
                     "address": fs['address'],
-                    "port": fs['port']
+                    "port": fs['port'],
+                    "timestamp": fs['timestamp']
                 })
             else:
                 fs = getRandomServer()
@@ -74,7 +76,8 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                     "filename": msg['filename'],
                     "isFile": True,
                     "address": fs['address'],
-                    "port": fs['port']
+                    "port": fs['port'],
+                    "timestamp": fs['timestamp']
                 })
             else:
                 response = json.dumps({
@@ -95,13 +98,14 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                     "isFile": True,
                     "uuid": fs['uuid'],
                     "address": fs['address'],
-                    "port": fs['port']
+                    "port": fs['port'],
+                    "timestamp": msg['timestamp']
                 })
             else:
                 print "write else"
                 fs = getRandomServer()
                 #addFileMapping(msg['filename'], fs[0], fs[1]['address'], fs[1]['port'])
-                FILE_MAPPINGS[msg['filename']] = {"uuid": fs[0], "address": fs[1]['address'], "port": fs[1]['port']}
+                FILE_MAPPINGS[msg['filename']] = {"uuid": fs[0], "address": fs[1]['address'], "port": fs[1]['port'], "timestamp": msg['timestamp']}
                 #print FILE_MAPPINGS
                 response = json.dumps({
                     "response": "write-null",
@@ -109,7 +113,8 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                     "isFile": False,
                     "uuid": fs[0],
                     "address": fs[1]['address'],
-                    "port": fs[1]['port']
+                    "port": fs[1]['port'],
+                    "timestamp": msg['timestamp']
                 })
         elif requestType == "dfsjoin":
             nodeID = msg['uuid']

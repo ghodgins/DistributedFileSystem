@@ -57,6 +57,7 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                     response = json.dumps({
                         "response": "unlocked"
                     })
+                # if client owns lock
                 elif msg['clientid'] == fs['clientid']:
                     print "Check lock -> lockowned"
                     response = json.dumps({
@@ -65,6 +66,7 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                         "timestamp": fs['timestamp'],
                         "timeout": fs['timeout']
                     })
+                # if client does not own lock
                 else:
                     print "Check lock -> locked"
                     response = json.dumps({
@@ -101,6 +103,7 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                         "timestamp": fs['timestamp'],
                         "timeout": fs['timeout']
                     })
+                # if client owns lock
                 elif msg['clientid'] == fs['clientid']:
                     print "Check lock -> lockowned"
                     timestamp = time.time()
@@ -110,6 +113,7 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                         "timestamp": timestamp,
                         "timeout": LOCK_TIMEOUT
                     })
+                # if client does not own lock
                 else:
                     print "Obtain lock -> locked already"
                     response = json.dumps({
