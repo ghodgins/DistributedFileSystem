@@ -86,7 +86,6 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                     "isFile": False
                 })        
         elif requestType == "write":
-            print "write print something in master server"
             print msg['filename']
             print FILE_MAPPINGS
             if fileExists(msg['filename']):
@@ -104,9 +103,8 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
             else:
                 print "write else"
                 fs = getRandomServer()
-                #addFileMapping(msg['filename'], fs[0], fs[1]['address'], fs[1]['port'])
                 FILE_MAPPINGS[msg['filename']] = {"uuid": fs[0], "address": fs[1]['address'], "port": fs[1]['port'], "timestamp": msg['timestamp']}
-                #print FILE_MAPPINGS
+                print FILE_MAPPINGS
                 response = json.dumps({
                     "response": "write-null",
                     "filename": msg['filename'],

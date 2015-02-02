@@ -1,7 +1,7 @@
 DistributedFileSystem - CS4032 Project
 =====================
 ##Client
-Provides the functionality of the distributed file system to the end user.
+Provides the functionality of the distributed file system to the end user. Includes a simple main test program that allows you to specify file names and some sample file contents to facilitate quick testing of the DFS.
 
 ##File Server
 Each file server node provides filesystem functionality for the distributed file system.
@@ -16,6 +16,8 @@ Keeps track of which files are locked in the distributed file system, and which 
 Simple caching on the client side that will read the file from the cache if present and valid. Will check if valid with the master server before, and invalidate if not.
 
 ##Usage
+"cd src" and execute "run.sh".
+
 "run.sh" creates:
 - 1 directory server
 - 2 file system nodes

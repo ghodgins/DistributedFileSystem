@@ -61,7 +61,9 @@ class DFSClient():
     def read(self, filename):
         fileServerInfo = json.loads(self.open(filename))
 
+        # if file exists, checked with directory server
         if fileServerInfo['isFile']:
+            # if file is in cache and its timestamp is at least as new as the last write to the file
             if (filename in self.cache) and (self.cache[filename]['timestamp'] >= fileServerInfo['timestamp']):
                 cacheFileInfo = self.cache[filename]
                 print "Read '" + filename + "' from cache!"
@@ -121,6 +123,7 @@ class DFSClient():
         return response
 
 
+# simple test for the client library
 if __name__ == '__main__':
     client = DFSClient(MASTER_ADDRESS, MASTER_PORT, LOCK_ADDRESS, LOCK_PORT)
 
